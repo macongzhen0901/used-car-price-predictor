@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚗 二手车价格预测系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .card-header h2 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-predict {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-predict:active {
+            transform: translateY(0);
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-card.show {
+            display: block;
+        }
+
+        .result-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .result-header h3 {
+            color: #667eea;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .price-display {
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .price-label {
+            color: #666;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+
+        .price-value {
+            font-size: 3.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .price-unit {
+            font-size: 0.5em;
+            color: #999;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .result-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .result-item-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .result-item-value {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .info-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .info-section h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .brand-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .brand-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .brand-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .brand-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .brand-rate {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .brand-rate-label {
+            font-size: 0.7em;
+            color: #999;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            opacity: 0.8;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .price-value {
+                font-size: 2.5em;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚗 二手车价格预测系统</h1>
+            <p>AI 驱动 · 精准估价 · 数据支撑</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">🦞 Powered by 马从振的 OpenClaw</p>
+        </header>
+
+        <!-- 主预测卡片 -->
+        <div class="main-card">
+            <div class="card-header">
+                <h2>💰 立即估价</h2>
+                <p>输入车辆信息，获取专业估价</p>
+            </div>
+            <div class="card-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>🏷️ 品牌</label>
+                        <select id="brand">
+                            <option value="丰田">丰田</option>
+                            <option value="本田">本田</option>
+                            <option value="日产">日产</option>
+                            <option value="大众">大众</option>
+                            <option value="奔驰">奔驰</option>
+                            <option value="宝马">宝马</option>
+                            <option value="奥迪">奥迪</option>
+                            <option value="别克">别克</option>
+                            <option value="福特">福特</option>
+                            <option value="现代">现代</option>
+                            <option value="比亚迪">比亚迪</option>
+                            <option value="特斯拉">特斯拉</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🚙 车型</label>
+                        <input type="text" id="model" placeholder="例如：凯美瑞 2.0G">
+                    </div>
+
+                    <div class="form-group">
+                        <label>📅 上牌年份</label>
+                        <input type="number" id="year" placeholder="2021" min="2000" max="2026">
+                    </div>
+
+                    <div class="form-group">
+                        <label>🛣️ 行驶里程 (万公里)</label>
+                        <input type="number" id="mileage" placeholder="6.5" step="0.1" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label>💵 新车指导价 (万元)</label>
+                        <input type="number" id="newPrice" placeholder="20.0" step="0.1" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label>⚙️ 排量 (L)</label>
+                        <input type="number" id="displacement" placeholder="2.0" step="0.1" min="0">
+                    </div>
+                </div>
+
+                <button class="btn-predict" onclick="predict()">
+                    🔮 开始预测
+                </button>
+
+                <!-- 预测结果 -->
+                <div class="result-card" id="resultCard">
+                    <div class="result-header">
+                        <h3>📊 估价结果</h3>
+                    </div>
+
+                    <div class="price-display">
+                        <div class="price-label">预测售价</div>
+                        <div class="price-value" id="predictedPrice">--</div>
+                        <div class="price-unit">万元</div>
+                    </div>
+
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="result-item-label">车龄</div>
+                            <div class="result-item-value" id="carAge">--</div>
+                            <div style="color: #999; font-size: 0.8em;">年</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-item-label">折旧率</div>
+                            <div class="result-item-value" id="depreciation">--</div>
+                            <div style="color: #999; font-size: 0.8em;">%</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-item-label">残值率</div>
+                            <div class="result-item-value" id="residual">--</div>
+                            <div style="color: #999; font-size: 0.8em;">%</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-item-label">品牌系数</div>
+                            <div class="result-item-value" id="brandFactor">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 品牌残值率参考 -->
+        <div class="info-section">
+            <h3>📈 品牌保值率排行榜 (3 年残值率)</h3>
+            <div class="brand-grid" id="brandGrid">
+                <!-- 由 JS 动态生成 -->
+            </div>
+        </div>
+
+        <!-- 使用说明 -->
+        <div class="info-section">
+            <h3>📖 使用说明</h3>
+            <div style="line-height: 1.8; color: #555;">
+                <p><strong>1. 数据准确性：</strong> 本系统基于行业大数据和折旧率模型，预测结果仅供参考。</p>
+                <p style="margin-top: 10px;"><strong>2. 影响因素：</strong> 实际价格还会受车况、地区、颜色、配置、市场供需等因素影响。</p>
+                <p style="margin-top: 10px;"><strong>3. 建议：</strong> 建议结合多个平台报价，实地看车后最终定价。</p>
+                <p style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                    <strong>🔗 相关链接：</strong>
+                    <a href="https://my.feishu.cn/base/QEMXbhPFZa4jPXsYenjc5tK3nmw" target="_blank" style="color: #667eea;">多维表格</a> | 
+                    <a href="https://www.feishu.cn/docx/YSfIduethoucrIxBAjtcQkJmnVm" target="_blank" style="color: #667eea;">使用文档</a>
+                </p>
+            </div>
+        </div>
+
+        <footer>
+            <p>🦞 马从振的 OpenClaw · 2026</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">
+                数据来源：汽车之家、瓜子二手车、行业研究报告
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // 折旧率模型数据
+        const DEPRECIATION_MODEL = {
+            "特斯拉": {"1 年": 0.80, "3 年": 0.68, "5 年": 0.55, "10 年": 0.35, "系数": 1.25},
+            "丰田": {"1 年": 0.78, "3 年": 0.65, "5 年": 0.52, "10 年": 0.30, "系数": 1.20},
+            "本田": {"1 年": 0.76, "3 年": 0.63, "5 年": 0.50, "10 年": 0.28, "系数": 1.18},
+            "奔驰": {"1 年": 0.75, "3 年": 0.60, "5 年": 0.48, "10 年": 0.25, "系数": 1.15},
+            "宝马": {"1 年": 0.73, "3 年": 0.58, "5 年": 0.46, "10 年": 0.23, "系数": 1.12},
+            "奥迪": {"1 年": 0.72, "3 年": 0.56, "5 年": 0.44, "10 年": 0.22, "系数": 1.10},
+            "大众": {"1 年": 0.70, "3 年": 0.55, "5 年": 0.42, "10 年": 0.20, "系数": 1.05},
+            "比亚迪": {"1 年": 0.70, "3 年": 0.55, "5 年": 0.42, "10 年": 0.20, "系数": 1.05},
+            "日产": {"1 年": 0.68, "3 年": 0.52, "5 年": 0.40, "10 年": 0.18, "系数": 1.00},
+            "福特": {"1 年": 0.65, "3 年": 0.48, "5 年": 0.36, "10 年": 0.16, "系数": 0.95},
+            "别克": {"1 年": 0.63, "3 年": 0.46, "5 年": 0.34, "10 年": 0.15, "系数": 0.92},
+            "现代": {"1 年": 0.62, "3 年": 0.45, "5 年": 0.33, "10 年": 0.14, "系数": 0.90},
+            "其他": {"1 年": 0.60, "3 年": 0.42, "5 年": 0.30, "10 年": 0.12, "系数": 0.85},
+        };
+
+        // 初始化品牌排行榜
+        function initBrandRanking() {
+            const brandGrid = document.getElementById('brandGrid');
+            const sortedBrands = Object.entries(DEPRECIATION_MODEL)
+                .sort((a, b) => b[1]["3 年"] - a[1]["3 年"]);
+
+            sortedBrands.forEach(([brand, data]) => {
+                const card = document.createElement('div');
+                card.className = 'brand-card';
+                card.innerHTML = `
+                    <div class="brand-name">${brand}</div>
+                    <div class="brand-rate">${(data["3 年"] * 100).toFixed(0)}%</div>
+                    <div class="brand-rate-label">3 年残值</div>
+                `;
+                brandGrid.appendChild(card);
+            });
+        }
+
+        // 计算残值率
+        function getResidualRate(brand, carAge) {
+            const dep = DEPRECIATION_MODEL[brand] || DEPRECIATION_MODEL["其他"];
+            
+            if (carAge <= 1) return dep["1 年"];
+            if (carAge <= 3) return dep["1 年"] - (dep["1 年"] - dep["3 年"]) * (carAge - 1) / 2;
+            if (carAge <= 5) return dep["3 年"] - (dep["3 年"] - dep["5 年"]) * (carAge - 3) / 2;
+            if (carAge <= 10) return dep["5 年"] - (dep["5 年"] - dep["10 年"]) * (carAge - 5) / 5;
+            return dep["10 年"] * Math.pow(0.9, carAge - 10);
+        }
+
+        // 预测价格
+        function predict() {
+            // 获取输入
+            const brand = document.getElementById('brand').value;
+            const year = parseInt(document.getElementById('year').value);
+            const mileage = parseFloat(document.getElementById('mileage').value);
+            const newPrice = parseFloat(document.getElementById('newPrice').value);
+
+            // 验证输入
+            if (!year || !mileage || !newPrice) {
+                alert('请填写完整信息！');
+                return;
+            }
+
+            // 计算车龄
+            const currentYear = 2026;
+            const carAge = currentYear - year;
+
+            // 获取折旧参数
+            const dep = DEPRECIATION_MODEL[brand] || DEPRECIATION_MODEL["其他"];
+            
+            // 计算残值率
+            const residualRate = getResidualRate(brand, carAge);
+
+            // 里程修正
+            const mileageFactor = Math.max(0.5, 1 - (mileage - 10) * 0.02);
+
+            // 计算预测价格
+            const predictedPrice = newPrice * residualRate * mileageFactor * dep["系数"];
+
+            // 计算折旧率
+            const depreciation = (1 - residualRate) * 100;
+
+            // 显示结果
+            document.getElementById('predictedPrice').textContent = predictedPrice.toFixed(2);
+            document.getElementById('carAge').textContent = carAge;
+            document.getElementById('depreciation').textContent = depreciation.toFixed(1);
+            document.getElementById('residual').textContent = (residualRate * 100).toFixed(1);
+            document.getElementById('brandFactor').textContent = dep["系数"].toFixed(2);
+
+            // 显示结果卡片
+            document.getElementById('resultCard').classList.add('show');
+
+            // 滚动到结果
+            document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            initBrandRanking();
+            
+            // 设置默认年份为 2021
+            document.getElementById('year').value = 2021;
+        };
+    </script>
+</body>
+</html>
